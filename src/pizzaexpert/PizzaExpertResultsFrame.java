@@ -5,47 +5,27 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
-import javax.swing.event.ListSelectionListener;
-
 import org.semanticweb.HermiT.Configuration;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -66,10 +46,7 @@ public class PizzaExpertResultsFrame{
 
 	// GUI components
 	private static ManchesterOWLSyntaxOWLObjectRendererImpl man = new ManchesterOWLSyntaxOWLObjectRendererImpl();
-	private JRadioButton rbSmall, rbMedium, rbLarge, rbThinCrust, rbMediumCrust, rbPan;
-	private JTextArea textArea;
 	private static JFrame frame;
-	private static List<String> toppings;
 	private static String size;
 	private static String base;
 	private static OWLOntology ontology;
@@ -79,9 +56,9 @@ public class PizzaExpertResultsFrame{
 //	private static String [] unsats;
 	private static OWLDataFactory df = OWLManager.getOWLDataFactory();
 //	private static DefaultListModel<String> toppingListModel; 
-	private static DefaultListModel<String> inferenceListModel;
+	private static DefaultListModel<InferenceWrapper> inferenceListModel;
 //	private static JList<String> list;  
-	private static JList<String> inferenceList;  
+	private static JList<InferenceWrapper> inferenceList;  
 	private static OWLClassExpression toppingsIntersection;
 
 	public static void results_screen() throws OWLOntologyCreationException {
@@ -95,14 +72,13 @@ public class PizzaExpertResultsFrame{
 	} // End of main
 
 	public PizzaExpertResultsFrame(OWLOntology ontology, String size, String base, List<String> toppings) {
-		inferenceListModel = new DefaultListModel<String>();
-		this.ontology = ontology;
-		this.toppings = toppings;
-		this.size = size;
-		this.base = base;
+		inferenceListModel = new DefaultListModel<InferenceWrapper>();
+		PizzaExpertResultsFrame.ontology = ontology;
+		PizzaExpertResultsFrame.size = size;
+		PizzaExpertResultsFrame.base = base;
 		
-		System.out.println("size: " + this.size);
-		System.out.println("base: " + this.base);
+		System.out.println("size: " + PizzaExpertResultsFrame.size);
+		System.out.println("base: " + PizzaExpertResultsFrame.base);
 		System.out.println();
 		for (int i = 0; i < toppings.size(); i++) {
 			System.out.println("topping " + i + ": " + toppings.get(i));
@@ -161,8 +137,8 @@ public class PizzaExpertResultsFrame{
 		x = width * 0.328125;
 		y = height * 0.694444444444444444444444444444;
 		
-		System.out.println((int)x);
-		System.out.println((int)y);
+		//System.out.println((int)x);
+		//System.out.println((int)y);
 		
 		frame = new JFrame("Luigi's Pizzeria Maastricht");
 		frame.setSize(600, 400);
@@ -206,7 +182,7 @@ public class PizzaExpertResultsFrame{
 		List<String> superClassesList = new ArrayList<String>();
 		for (OWLClass c: superClasses) {
 			superClassesList.add(man.render(c));
-			inferenceListModel.addElement(man.render(c));
+			inferenceListModel.addElement(new InferenceWrapper(c));
 		}
 		
 		JLabel lblYourOrder = new JLabel("Order information:");
@@ -214,7 +190,7 @@ public class PizzaExpertResultsFrame{
 		lblYourOrder.setBackground(Color.WHITE);
 		panel.add(lblYourOrder, BorderLayout.NORTH);
 		panel.setBackground(Color.WHITE);
-		inferenceList = new JList<String>(inferenceListModel);
+		inferenceList = new JList<InferenceWrapper>(inferenceListModel);
 		inferenceList.setBackground(Color.BLACK);
 		inferenceList.setForeground(Color.WHITE);
 		inferenceList.setFont(new Font("Calibri", Font.TRUETYPE_FONT, 18));
@@ -250,9 +226,10 @@ public class PizzaExpertResultsFrame{
 		public void actionPerformed(ActionEvent event) {
 			// Need all the toppings and choices for base and size
 			// 1. Size
-			String value = inferenceList.getSelectedValue();
+			InferenceWrapper value = inferenceList.getSelectedValue();
 			OWLSubClassOfAxiom entailment = df.getOWLSubClassOfAxiom(toppingsIntersection, 
-					df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#"+value)));
+					value.getClassExpression());
+					/*df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#"+value)));*/
 			PizzaExpertExplanationFrame f = new PizzaExpertExplanationFrame(ontology, entailment);
 			try {
 				f.explanation_screen();
