@@ -1,8 +1,4 @@
-/bin/
-.settings/
-target/
 .classpath
 .project
-jgoodies-forms-1.8.0.jar
-jgoodies-forms-1.8.0-sources.jar
-pom.xml
+target/
+.settings
