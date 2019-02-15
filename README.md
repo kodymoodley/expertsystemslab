@@ -46,10 +46,11 @@ Steps:
 
 3. Type `mvn clean compile assembly:single`.  On build completion, the `target/` directory will contain an executable `pizzaexpert-${version}.jar` file. 
 
-## Other modules used in this system
+## Other resources used in this system
 
 + [OWLExplanation](https://github.com/matthewhorridge/owlexplanation)
 + [HermiT](http://www.hermit-reasoner.com/)
 + [OWLAPI](http://owlcs.github.io/owlapi/)
++ [Pizza ontology](https://github.com/owlcs/pizza-ontology)
 
 For specific versions check the pom.xml file.
