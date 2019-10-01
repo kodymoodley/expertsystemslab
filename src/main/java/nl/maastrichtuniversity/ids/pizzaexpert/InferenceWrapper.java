@@ -18,7 +18,10 @@ public class InferenceWrapper {
 	public String toString() {
 		String result = man.render(cls);
 		int index = result.indexOf("Pizza");
-		return "This pizza is " + result.substring(0, index);
+		if (index != -1)
+			return "This pizza is " + result.substring(0, index);
+		else
+			return "This pizza is " + result;
 	}
 
 }

@@ -4,13 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Toolkit;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.ImageIcon;
@@ -27,16 +24,9 @@ import org.semanticweb.owl.explanation.api.ExplanationManager;
 import org.semanticweb.owlapi.manchestersyntax.renderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLLogicalAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -52,7 +42,7 @@ public class PizzaExpertExplanationFrame{
 	private static JFrame frame;
 	private static String explanation;
 	
-public static void explanation_screen() throws OWLOntologyCreationException {
+public void explanation_screen() throws OWLOntologyCreationException {
 		try {
 			frame.setVisible(true);
 		} catch (Exception e) {
@@ -83,40 +73,58 @@ public static void explanation_screen() throws OWLOntologyCreationException {
 				if (a.getAxiomType().equals(AxiomType.SUBCLASS_OF)) {
 					OWLSubClassOfAxiom sub = (OWLSubClassOfAxiom)a;
 					if (!sub.getSubClass().isAnonymous()) {
-						explanation += "Every " + man.render(sub.getSubClass()) + " ";
+						explanation += man.render(sub.getSubClass()) + " ";
 						if (!sub.getSuperClass().isAnonymous()) {
 							explanation += "is a " + man.render(sub.getSuperClass()) + "\n";
+							if (!explanation.contains("Range"))
+								explanation=explanation.replace("hasTopping","has");
+							explanation=explanation.replace("Equivalent","");
+							//explanation=explanation.replace("1","");
 						}
 						else {
 							explanation += "has this property: " + man.render(sub.getSuperClass()) + "\n";
+							if (!explanation.contains("Range"))
+								explanation=explanation.replace("hasTopping","has");
+							explanation=explanation.replace("Equivalent","");
+							//explanation=explanation.replace("1","");
 						}
 					}
 					else {
 						explanation += "If " + man.render(sub.getSubClass()) + " then " + man.render(sub.getSuperClass()) + "\n";
+						explanation=explanation.replace("Equivalent","");
+						//explanation=explanation.replace("1","");
 					}
 				}
 				else if (a.getAxiomType().equals(AxiomType.EQUIVALENT_CLASSES)) {
 					OWLEquivalentClassesAxiom equiv = (OWLEquivalentClassesAxiom)a;
 					Object[] arr = equiv.getClassExpressionsAsList().toArray();
 					explanation += man.render((OWLClassExpression)arr[0]) + " is the same as: " + man.render((OWLClassExpression)arr[1]) + "\n";
+					if (!explanation.contains("Range"))
+						explanation=explanation.replace("hasTopping","has");
+					explanation=explanation.replace("Equivalent","");
+					//explanation=explanation.replace("1","");
 				}
 				else if (a.getAxiomType().equals(AxiomType.DISJOINT_CLASSES)) {
 					OWLDisjointClassesAxiom disjoint = (OWLDisjointClassesAxiom)a;
 					Object[] arr = disjoint.getClassExpressionsAsList().toArray();
-					explanation += "The following are separate categories: ";
+					explanation += "The following categories cannot share instances: ";
 					for (Object o: arr) {
 						explanation += "(" + man.render((OWLClassExpression)o) + ") ";
+						if (!explanation.contains("Range"))
+							explanation=explanation.replace("hasTopping","has");
+						explanation=explanation.replace("Equivalent","");
+						//explanation=explanation.replace("1","");
 					}
 					explanation += "\n";
 				}
 				else {
 					explanation += man.render(a) + "\n";
+					if (!explanation.contains("Range"))
+						explanation=explanation.replace("hasTopping","has");
 				}
-			
 				i++;
 			}
 		}
-		
 		initialize();
 	}
 
@@ -124,18 +132,15 @@ public static void explanation_screen() throws OWLOntologyCreationException {
 	 * @wbp.parser.entryPoint
 	 */
 	private void initialize() {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		double width = screenSize.getWidth();
-		double height = screenSize.getHeight();
+		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		//double width = screenSize.getWidth();
+		//double height = screenSize.getHeight();
 		
-		double x = 0.0;
-		double y = 0;
+		//double x = 0.0;
+		//double y = 0;
 		
-		x = width * 0.328125;
-		y = height * 0.694444444444444444444444444444;
-		
-		//System.out.println((int)x);
-		//System.out.println((int)y);
+		//x = width * 0.328125;
+		//y = height * 0.694444444444444444444444444444;
 		
 		frame = new JFrame("Luigi's Pizzeria Maastricht");
 		frame.setSize(600, 400);
@@ -164,7 +169,7 @@ public static void explanation_screen() throws OWLOntologyCreationException {
 		JPanel panel = new JPanel();
 		panel.setBackground( Color.WHITE );
 
-		ImageIcon logo = new ImageIcon("src/main/resources/logo.png");
+		ImageIcon logo = new ImageIcon("resources/logo.png");
 		JLabel lblLogo = new JLabel(logo);
 
 		panel.add(lblLogo);

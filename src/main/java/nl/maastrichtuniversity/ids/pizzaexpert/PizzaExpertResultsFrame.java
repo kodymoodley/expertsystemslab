@@ -4,12 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -61,7 +59,7 @@ public class PizzaExpertResultsFrame{
 	private static JList<InferenceWrapper> inferenceList;  
 	private static OWLClassExpression toppingsIntersection;
 
-	public static void results_screen() throws OWLOntologyCreationException {
+	public void results_screen() throws OWLOntologyCreationException {
 		try {
 			frame.setVisible(true);
 
@@ -80,6 +78,27 @@ public class PizzaExpertResultsFrame{
 		System.out.println("size: " + PizzaExpertResultsFrame.size);
 		System.out.println("base: " + PizzaExpertResultsFrame.base);
 		System.out.println();
+		
+		OWLObjectProperty hasBase = df.getOWLObjectProperty(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#hasBase"));
+		OWLClassExpression baseType = null;
+		if (PizzaExpertResultsFrame.base == "pan crust")
+			baseType = df.getOWLObjectSomeValuesFrom(hasBase, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#DeepPanBase")));
+		else if (PizzaExpertResultsFrame.base == "thin crust")
+			baseType = df.getOWLObjectSomeValuesFrom(hasBase, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#ThinAndCrispyBase")));
+		else
+			baseType = df.getOWLObjectSomeValuesFrom(hasBase, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#ShallowPanBase")));
+		
+		
+		OWLObjectProperty hasSize = df.getOWLObjectProperty(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#hasSize"));
+		OWLClassExpression baseSize = null;
+		if (PizzaExpertResultsFrame.size == "small")
+			baseSize = df.getOWLObjectSomeValuesFrom(hasSize, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#SmallSize")));
+		else if (PizzaExpertResultsFrame.size == "large")
+			baseSize = df.getOWLObjectSomeValuesFrom(hasSize, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#LargeSize")));
+		else
+			baseSize = df.getOWLObjectSomeValuesFrom(hasSize, df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#MediumSize")));
+		
+		
 		for (int i = 0; i < toppings.size(); i++) {
 			System.out.println("topping " + i + ": " + toppings.get(i));
 		}
@@ -103,6 +122,8 @@ public class PizzaExpertResultsFrame{
 		} 
 		
 		hasToppingClasses.add(pizza);
+		hasToppingClasses.add(baseType);
+		hasToppingClasses.add(baseSize);
 		
 		// Now compute closure class
 		OWLClassExpression closureClass = null;
@@ -126,20 +147,7 @@ public class PizzaExpertResultsFrame{
 	/**
 	 * @wbp.parser.entryPoint
 	 */
-	private void initialize() {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		double width = screenSize.getWidth();
-		double height = screenSize.getHeight();
-		
-		double x = 0.0;
-		double y = 0;
-		
-		x = width * 0.328125;
-		y = height * 0.694444444444444444444444444444;
-		
-		//System.out.println((int)x);
-		//System.out.println((int)y);
-		
+	private void initialize() {		
 		frame = new JFrame("Luigi's Pizzeria Maastricht");
 		frame.setSize(600, 400);
 		//frame.setBounds(10, 10, 600, 1100);
@@ -168,7 +176,7 @@ public class PizzaExpertResultsFrame{
 		JPanel panel = new JPanel();
 		panel.setBackground( Color.WHITE );
 
-		ImageIcon logo = new ImageIcon("src/main/resources/logo.png");
+		ImageIcon logo = new ImageIcon("resources/logo.png");
 		JLabel lblLogo = new JLabel(logo);
 
 		panel.add(lblLogo);
@@ -205,7 +213,7 @@ public class PizzaExpertResultsFrame{
 		explainButton.setBackground(Color.BLACK);
 		explainButton.setFont(new Font("Calibri", Font.BOLD | Font.TRUETYPE_FONT, 20));
 		explainButton.setForeground(Color.WHITE);
-		
+		explainButton.setOpaque(true);
 		panel.add(explainButton, BorderLayout.SOUTH);
 		return panel;
 	}
@@ -242,73 +250,4 @@ public class PizzaExpertResultsFrame{
 		}
 
 	}
-	
-	/*private class AddToListButtonHandler implements ActionListener {
-
-		public void actionPerformed(ActionEvent event) {
-			List<String> selectedValues = list.getSelectedValuesList();
-			for (String s: selectedValues) {
-				toppingListModel.removeElement(s);
-			}
-		}
-
-	}*/
-
-} // End of HomeStylePizza class
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//package pizzaexpert;
-//
-//import java.awt.EventQueue;
-//import javax.swing.JFrame;
-//
-//public class PizzaExpertFrame {
-//
-//	private JFrame frame;
-//
-//	/**
-//	 * @wbp.parser.entryPoint
-//	 */
-//
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					PizzaExpertFrame window = new PizzaExpertFrame();
-//					window.frame.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-//
-//	/**
-//	 * Create the application.
-//	 */
-//	public PizzaExpertFrame() {
-//		initialize();
-//	}
-//
-//	/**
-//	 * Initialize the contents of the frame.
-//	 */
-//	private void initialize() {
-//		frame = new JFrame();
-//		frame.setBounds(100, 100, 840, 1000);
-//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//	}
-//
-//}
+}

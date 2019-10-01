@@ -21,6 +21,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,35 +50,39 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.reasoner.Node;
 
 public class PizzaExpertMainFrame{
-
-	private static final Insets bottomInsets = new Insets(10, 10, 10, 10);
+	//private static final Insets bottomInsets = new Insets(10, 10, 10, 10);
 	private static final Insets normalInsets = new Insets(10, 10, 0, 10);
-
 	// GUI components
 	private JRadioButton rbSmall, rbMedium, rbLarge, rbThinCrust, rbMediumCrust, rbPan;
 	private JFrame frame;
 	private static OWLOntology ontology;
-	private static int logicalAxiomCount;
 	private static ManchesterOWLSyntaxOWLObjectRendererImpl man = new ManchesterOWLSyntaxOWLObjectRendererImpl();
 	private static String [] unsats;
 	private static OWLDataFactory df;
 	private static DefaultListModel<String> toppingListModel; 
-	private static DefaultListModel<String> inferenceListModel;
 	private static JList<String> list;  
-	private static JList<String> inferenceList;  
-
+	
 	public static void main(String[] args) throws OWLOntologyCreationException {
 		try {
 			toppingListModel = new DefaultListModel<String>();
-			inferenceListModel = new DefaultListModel<String>();
 			df = OWLManager.getOWLDataFactory();
-			ontology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File("src/main/resources/pizza.owl"));
+			ontology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File("resources/pizza.owl"));
 			Reasoner reasoner = new Reasoner(new Configuration(), ontology);
 			OWLClass pizzaTopping = df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#PizzaTopping"));
-			System.out.println(pizzaTopping.getIRI());
-			Set<OWLClass> classes = reasoner.getSubClasses(pizzaTopping, false).getFlattened();
+			Set<OWLClass> classes_before = reasoner.getSubClasses(pizzaTopping, false).getFlattened();
+			Node<OWLClass> unsatclses = reasoner.getUnsatisfiableClasses();
+			Set<OWLClass> classes = new HashSet<OWLClass>();
+			
+			for (OWLClass item : classes_before) {
+				if (!unsatclses.contains(item)){
+					System.out.println(item);
+					classes.add(item);
+				}
+			}
+			
 			Set<OWLClass> direct_classes = reasoner.getSubClasses(pizzaTopping, true).getFlattened();
 			classes.removeAll(direct_classes);
 			classes.remove(df.getOWLNothing());
@@ -86,13 +91,8 @@ public class PizzaExpertMainFrame{
 			classes.remove(df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#SauceTopping")));
 			classes.remove(df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#CheeseTopping")));
 			classes.remove(df.getOWLClass(IRI.create(ontology.getOntologyID().getOntologyIRI().get()+"#FruitTopping")));
-			/*Set<Node<OWLClass>> tmp = classes.getNodes();
-			Set<OWLClass> allClasses = new HashSet<OWLClass>();
-			for (Node<OWLClass> t: tmp) {
-				allClasses.addAll(t.getEntities());
-			}*/
 
-			System.out.println(classes.size());
+			System.out.println("Number of pizza toppings in the ontology: " + classes.size());
 			unsats = new String[classes.size()];
 			int i = 0;
 			for (OWLClass c: classes) {
@@ -104,7 +104,6 @@ public class PizzaExpertMainFrame{
 		} catch (OWLOntologyCreationException e) {
 			e.printStackTrace();
 		}
-		logicalAxiomCount = ontology.getLogicalAxiomCount();
 
 		try {
 			PizzaExpertMainFrame window = new PizzaExpertMainFrame();
@@ -113,7 +112,6 @@ public class PizzaExpertMainFrame{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	} // End of main
 
 	public PizzaExpertMainFrame() {
@@ -126,21 +124,11 @@ public class PizzaExpertMainFrame{
 	 */
 	private void initialize() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		double width = screenSize.getWidth();
-		double height = screenSize.getHeight();
-
-		double x = 0.0;
-		double y = 0;
-
-		x = width * 0.328125;
-		y = height * 0.694444444444444444444444444444;
-
-		//System.out.println((int)x);
-		//System.out.println((int)y);
+		screenSize.getWidth();
+		screenSize.getHeight();
 
 		frame = new JFrame("Luigi's Pizzeria Maastricht");
 		frame.setSize(600, 400);
-		//frame.setBounds(10, 10, 600, 1100);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setLocationByPlatform(true);
 
@@ -165,10 +153,6 @@ public class PizzaExpertMainFrame{
 		addComponent(mainPanel, eastPanel, 1, gridy++, 1, 1, normalInsets,
 				GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL);
 
-		/*addComponent(mainPanel, createTextAreaPanel(), 0, gridy++, 2, 1,
-				bottomInsets, GridBagConstraints.LINE_START,
-				GridBagConstraints.HORIZONTAL);*/
-
 		frame.getContentPane().add(mainPanel);
 		frame.pack();
 		frame.setVisible(true);
@@ -178,7 +162,7 @@ public class PizzaExpertMainFrame{
 		JPanel panel = new JPanel();
 		panel.setBackground( Color.WHITE );
 
-		ImageIcon logo = new ImageIcon("src/main/resources/logo.png");
+		ImageIcon logo = new ImageIcon("resources/logo.png");
 		JLabel lblLogo = new JLabel(logo);
 
 		panel.add(lblLogo);
@@ -199,7 +183,7 @@ public class PizzaExpertMainFrame{
 			//create the font to use. Specify the size!
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			//register the font
-			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("src/main/resources/Amatic-Bold.ttf")));
+			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("resources/Amatic-Bold.ttf")));
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -207,10 +191,8 @@ public class PizzaExpertMainFrame{
 			e.printStackTrace();
 		}
 
-		JLabel lblEachTopping = new JLabel("Toppings");
+		JLabel lblEachTopping = new JLabel("Selected Toppings");
 		lblEachTopping.setFont(new Font("Amatic Bold", Font.TRUETYPE_FONT, 35));
-		//lblEachTopping.setFont(Font.);
-		//lblEachTopping.setForeground(Color.RED);
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 
@@ -240,18 +222,18 @@ public class PizzaExpertMainFrame{
 		addBtn.setBackground(Color.BLACK);
 		addBtn.setFont(new Font("Calibri", Font.BOLD | Font.TRUETYPE_FONT, 20));
 		addBtn.setForeground(Color.WHITE);
+		addBtn.setOpaque(true);
 		addBtn.addActionListener(new AddToListButtonHandler());
 		JLabel addBtn2 = new JLabel("Remove selected");
 		addBtn2.setBackground(Color.WHITE);
 		addBtn2.setFont(new Font("Calibri", Font.BOLD | Font.TRUETYPE_FONT, 20));
 		addBtn2.setForeground(Color.WHITE);
-
-		//masterPanel.add(otherPanel);
+		addBtn2.setOpaque(true);
+		
 		list = new JList<String>(toppingListModel);
 		list.setBackground(Color.BLACK);
 		list.setForeground(Color.WHITE);
 		list.setFont(new Font("Calibri", Font.TRUETYPE_FONT, 20));
-
 
 		JScrollPane scrollPane = new JScrollPane(list);
 		otherPanel.add(scrollPane);
@@ -276,7 +258,7 @@ public class PizzaExpertMainFrame{
 			//create the font to use. Specify the size!
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			//register the font
-			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("src/main/resources/Amatic-Bold.ttf")));
+			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("resources/Amatic-Bold.ttf")));
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -284,10 +266,8 @@ public class PizzaExpertMainFrame{
 			e.printStackTrace();
 		}
 
-
 		JLabel lblPizzaSize = new JLabel("Pizza Size");
 		lblPizzaSize.setFont(new Font("Amatic Bold", Font.TRUETYPE_FONT, 35));
-		//lblPizzaSize.setForeground(Color.RED);
 		panel.add(lblPizzaSize);
 
 		rbSmall = new JRadioButton("Small: 20cm");
@@ -327,7 +307,7 @@ public class PizzaExpertMainFrame{
 			//create the font to use. Specify the size!
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			//register the font
-			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("src/main/resources/Amatic-Bold.ttf")));
+			ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, new File("resources/Amatic-Bold.ttf")));
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -369,6 +349,7 @@ public class PizzaExpertMainFrame{
 		JPanel panel = new JPanel();
 
 		JButton btnProcessSelection = new JButton("Order !");
+		btnProcessSelection.setOpaque(true);
 		btnProcessSelection.addActionListener(new CalculateButtonHandler());
 		panel.add(btnProcessSelection);
 		panel.setBackground( Color.WHITE );
@@ -377,28 +358,6 @@ public class PizzaExpertMainFrame{
 		btnProcessSelection.setFont(new Font("Calibri", Font.BOLD | Font.TRUETYPE_FONT, 20));
 		btnProcessSelection.setForeground(Color.WHITE);
 
-		return panel;
-	}
-
-	private JPanel createTextAreaPanel() {
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-
-		JLabel lblYourOrder = new JLabel("Order information:");
-		lblYourOrder.setFont(new Font("Calibri", Font.BOLD | Font.TRUETYPE_FONT, 20));
-		panel.add(lblYourOrder, BorderLayout.NORTH);
-
-		inferenceList = new JList<String>(inferenceListModel);
-		inferenceList.setBackground(Color.BLACK);
-		inferenceList.setForeground(Color.WHITE);
-		inferenceList.setFont(new Font("Calibri", Font.TRUETYPE_FONT, 18));
-		JScrollPane scrollPane = new JScrollPane(inferenceList);
-
-		/*textArea = new JTextArea(6, 12);
-		textArea.setText(logicalAxiomCount+"");
-		JScrollPane scrollPane = new JScrollPane(textArea);*/
-		panel.add(scrollPane, BorderLayout.CENTER);
-		panel.setBackground( Color.WHITE );
 		return panel;
 	}
 
@@ -450,7 +409,7 @@ public class PizzaExpertMainFrame{
 				JOptionPane.showMessageDialog(frame, "You haven't selected a pizza base.");
 			}
 			
-			// 3. Toppings
+			// 3. Pizza-top
 			List<String> toppings = new ArrayList<String>();
 			for(int i = 0; i< list.getModel().getSize();i++){
 				toppings.add(list.getModel().getElementAt(i));
@@ -458,7 +417,7 @@ public class PizzaExpertMainFrame{
 	        }
 
 			if (gotAllInfo) {
-				PizzaExpertResultsFrame f = new PizzaExpertResultsFrame(ontology, pizzaSize, pizzaBase, toppings);
+				final PizzaExpertResultsFrame f = new PizzaExpertResultsFrame(ontology, pizzaSize, pizzaBase, toppings);
 				try {
 					f.results_screen();
 				} catch (OWLOntologyCreationException e) {
@@ -466,9 +425,7 @@ public class PizzaExpertMainFrame{
 					e.printStackTrace();
 				}
 			}
-
 		}
-
 	}
 
 	private class AddToListButtonHandler implements ActionListener {
@@ -481,5 +438,4 @@ public class PizzaExpertMainFrame{
 		}
 
 	}
-
 }
