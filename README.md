@@ -19,13 +19,11 @@ Steps:
 
 ```bash
 pizzaexpert-${version}.jar
-src
-|-- main
-|	|-- resources
-|	|	|-- pizza.owl
-|	|	|-- logo.png
-|	|	|-- Amatic-Bold.ttf
-|	|	|-- AmaticSC-Regular.ttf
+resources
+|-- pizza.owl
+|-- logo.png
+|-- Amatic-Bold.ttf
+|-- AmaticSC-Regular.ttf
 ```
 
 #### For Developers: Building a jar executable of the system
